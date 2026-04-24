@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="lt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LITGRID – Pirkimų trukmių skaičiuoklė</title>
+<style>
+  :root {
+    --lg-primary: #1F3864;
+    --lg-primary-light: #4472C4;
+    --lg-accent: #70AD47;
+    --lg-orange: #ED7D31;
+    --lg-yellow: #FFC000;
+    --lg-bg: #F4F6FA;
+    --lg-panel: #FFFFFF;
+    --lg-border: #D9DEE7;
+    --lg-text: #1B2430;
+    --lg-muted: #5A6477;
+    --shadow: 0 2px 8px rgba(31,56,100,0.08);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", "Open Sans", Arial, sans-serif;
+    background: var(--lg-bg);
+    color: var(--lg-text);
+    line-height: 1.5;
+  }
+  header {
+    background: linear-gradient(135deg, var(--lg-primary) 0%, var(--lg-primary-light) 100%);
+    color: #fff;
+    padding: 28px 32px;
+    box-shadow: var(--shadow);
+  }
+  header h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: 0.3px; }
+  header .sub { opacity: 0.9; font-size: 14px; }
+  .container { max-width: 1180px; margin: 0 auto; padding: 24px 32px 60px; }
+  .intro {
+    background: var(--lg-panel);
+    border: 1px solid var(--lg-border);
+    border-radius: 10px;
+    padding: 18px 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 22px;
+  }
+  .intro h2 { margin: 0 0 10px; font-size: 17px; color: var(--lg-primary); }
+  .intro ul { margin: 6px 0 0 18px; padding: 0; }
+  .intro li { margin-bottom: 4px; font-size: 14px; }
+  .intro summary { cursor: pointer; font-weight: 600; color: var(--lg-primary); font-size: 15px; }
+  details[open] summary { margin-bottom: 10px; }
+
+  .card {
+    background: var(--lg-panel);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin-bottom: 22px;
+    box-shadow: var(--shadow);
+    border-top: 4px solid var(--lg-primary);
+  }
+  .card.orange { border-top-color: var(--lg-orange); }
+  .card.green  { border-top-color: var(--lg-accent); }
+  .card.yellow { border-top-color: var(--lg-yellow); }
+
+  .card h2 {
+    margin: 0 0 4px;
+    font-size: 19px;
+    color: var(--lg-primary);
+  }
+  .card .hint {
+    color: var(--lg-muted);
+    font-size: 13.5px;
+    margin-bottom: 18px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .field label {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--lg-text);
+  }
+  .field .req {
+    color: #C00000;
+    margin-right: 2px;
+  }
+  .field input, .field select {
+    padding: 9px 11px;
+    border: 1px solid var(--lg-border);
+    border-radius: 7px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #FDFDFD;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field input:focus, .field select:focus {
+    outline: none;
+    border-color: var(--lg-primary-light);
+    box-shadow: 0 0 0 3px rgba(68,114,196,0.15);
+  }
+  .results {
+    margin-top: 18px;
+    padding: 14px 18px;
+    background: #F8FAFE;
+    border: 1px dashed var(--lg-primary-light);
+    border-radius: 8px;
+  }
+  .results .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dotted #E0E4EC;
+    font-size: 14px;
+  }
+  .results .row:last-child { border-bottom: none; }
+  .results .row .lbl { color: var(--lg-muted); }
+  .results .row .val { font-weight: 600; color: var(--lg-primary); }
+  .results .row .val.placeholder { color: #B0B8C8; font-weight: 500; font-style: italic; }
+
+  .timeline {
+    margin-top: 18px;
+    padding: 16px 18px 22px;
+    background: #FAFCFF;
+    border: 1px solid var(--lg-border);
+    border-radius: 8px;
+  }
+  .timeline .bar {
+    display: flex;
+    height: 28px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #ECEFF5;
+    margin: 10px 0 6px;
+  }
+  .timeline .bar .seg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #fff;
+    font-weight: 600;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .timeline .bar .prep  { background: var(--lg-primary); }
+  .timeline .bar .exec  { background: var(--lg-primary-light); }
+  .timeline .ticks {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    color: var(--lg-muted);
+    margin-top: 4px;
+  }
+  .timeline .legend {
+    display: flex;
+    gap: 18px;
+    font-size: 12.5px;
+    color: var(--lg-muted);
+    margin-top: 10px;
+  }
+  .legend .sw {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    margin-right: 6px;
+    vertical-align: -1px;
+  }
+
+  .table-wrap {
+    background: var(--lg-panel);
+    border-radius: 12px;
+    padding: 18px 22px;
+    box-shadow: var(--shadow);
+    margin-top: 22px;
+  }
+  .table-wrap h3 { margin: 0 0 12px; color: var(--lg-primary); font-size: 17px; }
+  table.cls {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  table.cls th, table.cls td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--lg-border);
+    text-align: left;
+  }
+  table.cls th {
+    background: #EDF1F8;
+    color: var(--lg-primary);
+    font-weight: 600;
+  }
+  table.cls td.num { text-align: center; font-variant-numeric: tabular-nums; }
+  table.cls tr:hover td { background: #F7F9FD; }
+
+  footer {
+    text-align: center;
+    color: var(--lg-muted);
+    font-size: 12.5px;
+    margin-top: 30px;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11.5px;
+    background: #E7EEF9;
+    color: var(--lg-primary);
+    margin-left: 6px;
+  }
+
+  @media (max-width: 720px) {
+    .grid { grid-template-columns: 1fr; }
+    .container { padding: 16px; }
+    header { padding: 22px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>LITGRID – Pirkimų trukmių skaičiuoklė</h1>
+  <div class="sub">Pasirengimo ir vykdymo trukmės skaičiavimas pagal pirkimo būdą (darbo dienomis, įvertinant Lietuvos valstybines šventes).</div>
+</header>
+
+<div class="container">
+
+  <div class="intro">
+    <details open>
+      <summary>Kaip naudotis įrankiu</summary>
+      <p style="margin:10px 0 6px">Pirkimo trukmė LITGRID AB susideda iš dviejų etapų: <b>pasirengimo trukmės</b> (techninė specifikacija ir pirkimo dokumentai) ir <b>pirkimo vykdymo trukmės</b> (procedūrų vykdymas iki sutarties pasirašymo). Skaičiuojamos darbo dienos (d.d.), praleidžiant savaitgalius ir Lietuvos valstybines šventes (2026–2028 m.).</p>
+      <ul>
+        <li><b>1 skaičiuoklė (oranžinė)</b> – žinote pirkimo inicijavimo datą → apskaičiuojama pirkimo pradžios ir sutarties sudarymo data (visa trukmė).</li>
+        <li><b>2 skaičiuoklė (žalia)</b> – žinote planuojamą sutarties sudarymo datą → atgaline seka apskaičiuojama, kada reikia pradėti pasirengimą ir paskelbti pirkimą.</li>
+        <li><b>3 skaičiuoklė (geltona)</b> – žinote pirkimo pradžios datą → apskaičiuojama sutarties sudarymo data (tik vykdymo trukmė).</li>
+      </ul>
+      <p style="margin:8px 0 0; color:var(--lg-muted); font-size:13px">Pastaba: skaičiavimai atitinka LITGRID naudojamas formules (WORKDAY su pataisos koeficientu, kad pradžios diena įskaitoma į trukmę). Pirkimo būdų trukmes galima peržiūrėti lentelėje puslapio apačioje.</p>
+    </details>
+  </div>
+
+  <!-- 1. Full duration -->
+  <div class="card orange">
+    <h2>1. Visa pirkimo trukmė <span class="badge">pasirengimas + vykdymas</span></h2>
+    <div class="hint">Įveskite pirkimo inicijavimo datą ir pasirinkite pirkimo būdą. Bus apskaičiuota numatoma pirkimo pradžios data ir sutarties sudarymo data.</div>
+    <div class="grid">
+      <div class="field">
+        <label><span class="req">*</span>Pirkimo inicijavimo data</label>
+        <input type="date" id="m1-init">
+      </div>
+      <div class="field">
+        <label><span class="req">*</span>Pirkimo būdas</label>
+        <select id="m1-method"></select>
+      </div>
+    </div>
+    <div class="results" id="m1-results">
+      <div class="row"><span class="lbl">Pasirengimo trukmė</span><span class="val placeholder" id="m1-prep">—</span></div>
+      <div class="row"><span class="lbl">Pirkimo vykdymo trukmė</span><span class="val placeholder" id="m1-exec">—</span></div>
+      <div class="row"><span class="lbl">Numatoma pirkimo pradžios data</span><span class="val placeholder" id="m1-start">—</span></div>
+      <div class="row"><span class="lbl">Sutarties sudarymo data</span><span class="val placeholder" id="m1-contract">—</span></div>
+    </div>
+    <div class="timeline" id="m1-tl" style="display:none">
+      <div style="font-size:13px; font-weight:600; color:var(--lg-primary);">Laiko juosta</div>
+      <div class="bar"><div class="seg prep" id="m1-seg-prep"></div><div class="seg exec" id="m1-seg-exec"></div></div>
+      <div class="ticks"><span id="m1-t-start"></span><span id="m1-t-mid"></span><span id="m1-t-end"></span></div>
+      <div class="legend">
+        <span><span class="sw" style="background:var(--lg-primary)"></span>Pasirengimas</span>
+        <span><span class="sw" style="background:var(--lg-primary-light)"></span>Vykdymas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Reverse -->
+  <div class="card green">
+    <h2>2. Atgalinė sekoskaita – nuo sutarties datos <span class="badge">reverse</span></h2>
+    <div class="hint">Įveskite planuojamą sutarties sudarymo datą ir pirkimo būdą. Bus apskaičiuotos vėliausios pirkimo inicijavimo ir paskelbimo (pirkimo pradžios) datos.</div>
+    <div class="grid">
+      <div class="field">
+        <label><span class="req">*</span>Planuojama sutarties sudarymo data</label>
+        <input type="date" id="m2-contract">
+      </div>
+      <div class="field">
+        <label><span class="req">*</span>Pirkimo būdas</label>
+        <select id="m2-method"></select>
+      </div>
+    </div>
+    <div class="results" id="m2-results">
+      <div class="row"><span class="lbl">Pasirengimo trukmė</span><span class="val placeholder" id="m2-prep">—</span></div>
+      <div class="row"><span class="lbl">Pirkimo vykdymo trukmė</span><span class="val placeholder" id="m2-exec">—</span></div>
+      <div class="row"><span class="lbl">Pirkimo inicijavimo data</span><span class="val placeholder" id="m2-init">—</span></div>
+      <div class="row"><span class="lbl">Pirkimo pradžios data</span><span class="val placeholder" id="m2-start">—</span></div>
+    </div>
+    <div class="timeline" id="m2-tl" style="display:none">
+      <div style="font-size:13px; font-weight:600; color:var(--lg-primary);">Laiko juosta</div>
+      <div class="bar"><div class="seg prep" id="m2-seg-prep"></div><div class="seg exec" id="m2-seg-exec"></div></div>
+      <div class="ticks"><span id="m2-t-start"></span><span id="m2-t-mid"></span><span id="m2-t-end"></span></div>
+      <div class="legend">
+        <span><span class="sw" style="background:var(--lg-primary)"></span>Pasirengimas</span>
+        <span><span class="sw" style="background:var(--lg-primary-light)"></span>Vykdymas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Execution only -->
+  <div class="card yellow">
+    <h2>3. Tik pirkimo vykdymo trukmė <span class="badge">be pasirengimo</span></h2>
+    <div class="hint">Įveskite pirkimo pradžios datą (kvietimo / skelbimo datą) ir pirkimo būdą. Bus apskaičiuota sutarties sudarymo data įvertinant tik vykdymo procedūrų trukmę.</div>
+    <div class="grid">
+      <div class="field">
+        <label><span class="req">*</span>Pirkimo pradžios data</label>
+        <input type="date" id="m3-start">
+      </div>
+      <div class="field">
+        <label><span class="req">*</span>Pirkimo būdas</label>
+        <select id="m3-method"></select>
+      </div>
+    </div>
+    <div class="results" id="m3-results">
+      <div class="row"><span class="lbl">Pirkimo vykdymo trukmė</span><span class="val placeholder" id="m3-exec">—</span></div>
+      <div class="row"><span class="lbl">Sutarties sudarymo data</span><span class="val placeholder" id="m3-contract">—</span></div>
+    </div>
+    <div class="timeline" id="m3-tl" style="display:none">
+      <div style="font-size:13px; font-weight:600; color:var(--lg-primary);">Laiko juosta</div>
+      <div class="bar"><div class="seg exec" id="m3-seg-exec" style="width:100%"></div></div>
+      <div class="ticks"><span id="m3-t-start"></span><span id="m3-t-end"></span></div>
+      <div class="legend">
+        <span><span class="sw" style="background:var(--lg-primary-light)"></span>Vykdymas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Classification table -->
+  <div class="table-wrap">
+    <h3>Pirkimo būdų klasifikatorius</h3>
+    <table class="cls">
+      <thead>
+        <tr>
+          <th>Kodas</th>
+          <th>Pirkimo būdo pavadinimas</th>
+          <th class="num">Pasirengimas, d.d.</th>
+          <th class="num">Vykdymas, d.d.</th>
+          <th class="num">Viso, d.d.</th>
+        </tr>
+      </thead>
+      <tbody id="cls-body"></tbody>
+    </table>
+  </div>
+
+  <footer>
+    LITGRID AB · Pirkimų trukmių skaičiuoklė · v1.0 · Skaičiuojama pagal LR pirkimų, atliekamų vandentvarkos, energetikos, transporto ar pašto paslaugų srities perkančiųjų subjektų įstatymą.
+  </footer>
+</div>
+
+<script>
+/* =====================================================================
+   Pirkimo būdų klasifikatorius (pagal pateiktą lentelę)
+   ===================================================================== */
+const METHODS = [
+  { code: "CPO",    name: "CPO pirkimas",                                            prep: 2,  exec: 18 },
+  { code: "MV-NZ",  name: "Mažos vertės pirkimas – neskelbiama apklausa žodžiu",     prep: 1,  exec: 2  },
+  { code: "MV-NR",  name: "Mažos vertės pirkimas – neskelbiama apklausa raštu",      prep: 5,  exec: 25 },
+  { code: "MV-SAB", name: "Mažos vertės pirkimas – skelbiama apklausa be derybų",    prep: 10, exec: 35 },
+  { code: "MV-SAD", name: "Mažos vertės pirkimas – skelbiama apklausa su derybomis", prep: 10, exec: 50 },
+  { code: "S-ND",   name: "Supaprastintas pirkimas – neskelbiamos derybos",          prep: 5,  exec: 45 },
+  { code: "S-AK",   name: "Supaprastintas pirkimas – atviras konkursas",             prep: 15, exec: 60 },
+  { code: "S-SD",   name: "Supaprastintas pirkimas – skelbiamos derybos",            prep: 20, exec: 75 },
+  { code: "T-ND",   name: "Tarptautinis pirkimas – neskelbiamos derybos",            prep: 10, exec: 65 },
+  { code: "T-AK",   name: "Tarptautinis pirkimas – atviras konkursas",               prep: 15, exec: 75 },
+  { code: "T-SD",   name: "Tarptautinis pirkimas – skelbiamos derybos",              prep: 25, exec: 110 },
+  { code: "DPS",    name: "DPS pagrindinis",                                         prep: 10, exec: 50 },
+  { code: "DPS-K",  name: "DPS konkretus pirkimas",                                  prep: 7,  exec: 45 },
+];
+
+/* =====================================================================
+   Lietuvos valstybinės šventės 2026–2028 (ISO datos, YYYY-MM-DD)
+   Įtraukta: Naujieji, Vasario 16, Kovo 11, Velykų pirmadienis (II Velykos),
+   Gegužės 1, Joninės (VI-24), Valstybės diena (VII-6), Žolinė (VIII-15),
+   Visų Šventųjų (XI-1), Vėlinės (XI-2), Kūčios (XII-24), Kalėdos (XII-25),
+   II Kalėdų diena (XII-26).
+   ===================================================================== */
+const HOLIDAYS = new Set([
+  // 2026
+  "2026-01-01","2026-02-16","2026-03-11","2026-04-06","2026-05-01",
+  "2026-06-24","2026-07-06","2026-08-15","2026-11-01","2026-11-02",
+  "2026-12-24","2026-12-25","2026-12-26",
+  // 2027
+  "2027-01-01","2027-02-16","2027-03-11","2027-03-29","2027-05-01",
+  "2027-06-24","2027-07-06","2027-08-15","2027-11-01","2027-11-02",
+  "2027-12-24","2027-12-25","2027-12-26",
+  // 2028
+  "2028-01-01","2028-02-16","2028-03-11","2028-04-17","2028-05-01",
+  "2028-06-24","2028-07-06","2028-08-15","2028-11-01","2028-11-02",
+  "2028-12-24","2028-12-25","2028-12-26"
+]);
+
+/* =====================================================================
+   Darbo dienų logika (atitikmuo Excel WORKDAY)
+   ===================================================================== */
+function toISO(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const dd = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${dd}`;
+}
+function parseISO(s) {
+  if (!s) return null;
+  const [y,m,d] = s.split("-").map(Number);
+  return new Date(y, m-1, d);
+}
+function isWorkday(d) {
+  const dow = d.getDay(); // 0 Sun, 6 Sat
+  if (dow === 0 || dow === 6) return false;
+  if (HOLIDAYS.has(toISO(d))) return false;
+  return true;
+}
+/* Excel WORKDAY(start, days, holidays):
+   Returns the date N working days before/after start (not counting start itself). */
+function workday(start, days) {
+  const d = new Date(start.getTime());
+  if (days === 0) return d;
+  const step = days > 0 ? 1 : -1;
+  let remaining = Math.abs(days);
+  while (remaining > 0) {
+    d.setDate(d.getDate() + step);
+    if (isWorkday(d)) remaining--;
+  }
+  return d;
+}
+/* Format date like "2026 m. vasaris 12 d., ketvirtadienis" */
+const LT_MONTHS = ["sausis","vasaris","kovas","balandis","gegužė","birželis",
+                   "liepa","rugpjūtis","rugsėjis","spalis","lapkritis","gruodis"];
+const LT_DAYS   = ["sekmadienis","pirmadienis","antradienis","trečiadienis",
+                   "ketvirtadienis","penktadienis","šeštadienis"];
+function formatLT(d) {
+  if (!d) return "—";
+  return `${d.getFullYear()} m. ${LT_MONTHS[d.getMonth()]} ${d.getDate()} d., ${LT_DAYS[d.getDay()]}`;
+}
+function formatShort(d) {
+  return d ? toISO(d) : "—";
+}
+
+/* =====================================================================
+   Dropdown & lentelės užpildymas
+   ===================================================================== */
+function fillSelect(id) {
+  const sel = document.getElementById(id);
+  sel.innerHTML = `<option value="">— pasirinkite —</option>` +
+    METHODS.map(m => `<option value="${m.code}">${m.code} · ${m.name} (${m.prep}+${m.exec} d.d.)</option>`).join("");
+}
+function fillClassTable() {
+  const tb = document.getElementById("cls-body");
+  tb.innerHTML = METHODS.map(m => `
+    <tr>
+      <td><b>${m.code}</b></td>
+      <td>${m.name}</td>
+      <td class="num">${m.prep}</td>
+      <td class="num">${m.exec}</td>
+      <td class="num"><b>${m.prep + m.exec}</b></td>
+    </tr>`).join("");
+}
+
+function getMethod(code) { return METHODS.find(m => m.code === code); }
+
+function setVal(id, text, isPlaceholder=false) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.classList.toggle("placeholder", isPlaceholder);
+}
+
+/* =====================================================================
+   Skaičiavimai
+   ===================================================================== */
+
+// 1. Visa trukmė: init → start (po prep), init → contract (po prep+exec)
+function calc1() {
+  const init = parseISO(document.getElementById("m1-init").value);
+  const method = getMethod(document.getElementById("m1-method").value);
+  const tl = document.getElementById("m1-tl");
+
+  if (!init || !method) {
+    setVal("m1-prep","—",true); setVal("m1-exec","—",true);
+    setVal("m1-start","—",true); setVal("m1-contract","—",true);
+    tl.style.display = "none";
+    return;
+  }
+  const { prep, exec } = method;
+  // Atitinka Excel: WORKDAY(D2, MAX(prep-1,0)) ir WORKDAY(D2, MAX(prep+exec-1,0))
+  const startDate    = workday(init, Math.max(prep - 1, 0));
+  const contractDate = workday(init, Math.max(prep + exec - 1, 0));
+
+  setVal("m1-prep", `${prep} d.d.`);
+  setVal("m1-exec", `${exec} d.d.`);
+  setVal("m1-start", formatLT(startDate));
+  setVal("m1-contract", formatLT(contractDate));
+
+  // Timeline
+  const total = prep + exec;
+  const prepPct = (prep / total * 100).toFixed(1);
+  const execPct = (exec / total * 100).toFixed(1);
+  document.getElementById("m1-seg-prep").style.width = prepPct + "%";
+  document.getElementById("m1-seg-exec").style.width = execPct + "%";
+  document.getElementById("m1-seg-prep").textContent = prep + " d.d.";
+  document.getElementById("m1-seg-exec").textContent = exec + " d.d.";
+  document.getElementById("m1-t-start").textContent = "Inicijavimas: " + formatShort(init);
+  document.getElementById("m1-t-mid").textContent   = "Pirkimo pradžia: " + formatShort(startDate);
+  document.getElementById("m1-t-end").textContent   = "Sutartis: " + formatShort(contractDate);
+  tl.style.display = "block";
+}
+
+// 2. Reverse: contract → init (–(prep+exec-1)), contract → start (–exec)
+function calc2() {
+  const contract = parseISO(document.getElementById("m2-contract").value);
+  const method = getMethod(document.getElementById("m2-method").value);
+  const tl = document.getElementById("m2-tl");
+
+  if (!contract || !method) {
+    setVal("m2-prep","—",true); setVal("m2-exec","—",true);
+    setVal("m2-init","—",true); setVal("m2-start","—",true);
+    tl.style.display = "none";
+    return;
+  }
+  const { prep, exec } = method;
+  const initDate  = workday(contract, -Math.max(prep + exec - 1, 0));
+  const startDate = workday(contract, -exec);
+
+  setVal("m2-prep", `${prep} d.d.`);
+  setVal("m2-exec", `${exec} d.d.`);
+  setVal("m2-init", formatLT(initDate));
+  setVal("m2-start", formatLT(startDate));
+
+  const total = prep + exec;
+  const prepPct = (prep / total * 100).toFixed(1);
+  const execPct = (exec / total * 100).toFixed(1);
+  document.getElementById("m2-seg-prep").style.width = prepPct + "%";
+  document.getElementById("m2-seg-exec").style.width = execPct + "%";
+  document.getElementById("m2-seg-prep").textContent = prep + " d.d.";
+  document.getElementById("m2-seg-exec").textContent = exec + " d.d.";
+  document.getElementById("m2-t-start").textContent = "Inicijavimas: " + formatShort(initDate);
+  document.getElementById("m2-t-mid").textContent   = "Pirkimo pradžia: " + formatShort(startDate);
+  document.getElementById("m2-t-end").textContent   = "Sutartis: " + formatShort(contract);
+  tl.style.display = "block";
+}
+
+// 3. Tik vykdymas: start → contract (+exec d.d.)
+function calc3() {
+  const start = parseISO(document.getElementById("m3-start").value);
+  const method = getMethod(document.getElementById("m3-method").value);
+  const tl = document.getElementById("m3-tl");
+
+  if (!start || !method) {
+    setVal("m3-exec","—",true); setVal("m3-contract","—",true);
+    tl.style.display = "none";
+    return;
+  }
+  const { exec } = method;
+  // Pagal pateiktą PDF formulę (Vykdymas, skaičiuokle Nr. 3): WORKDAY(D24, exec) – be -1 pataisos
+  const contract = workday(start, exec);
+
+  setVal("m3-exec", `${exec} d.d.`);
+  setVal("m3-contract", formatLT(contract));
+
+  document.getElementById("m3-seg-exec").textContent = exec + " d.d.";
+  document.getElementById("m3-t-start").textContent = "Pirkimo pradžia: " + formatShort(start);
+  document.getElementById("m3-t-end").textContent   = "Sutartis: " + formatShort(contract);
+  tl.style.display = "block";
+}
+
+/* =====================================================================
+   Inicializacija
+   ===================================================================== */
+document.addEventListener("DOMContentLoaded", () => {
+  fillSelect("m1-method");
+  fillSelect("m2-method");
+  fillSelect("m3-method");
+  fillClassTable();
+
+  ["m1-init","m1-method"].forEach(id => document.getElementById(id).addEventListener("change", calc1));
+  ["m2-contract","m2-method"].forEach(id => document.getElementById(id).addEventListener("change", calc2));
+  ["m3-start","m3-method"].forEach(id => document.getElementById(id).addEventListener("change", calc3));
+});
+</script>
+
+</body>
+</html>
