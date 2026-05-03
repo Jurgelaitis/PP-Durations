@@ -18,6 +18,9 @@
     --color-graphite-15: #E1E2E4;
     --color-graphite-5: #EFF1F1;
 
+    /* Litgrid corporate navy (logotipo spalva) */
+    --color-litgrid-navy: #0F2D46;
+
     --color-blue: #00667D;
     --color-cyan: #00A5C4;
     --color-lime: #85BC28;
@@ -77,7 +80,7 @@
   .topbar-inner {
     max-width: var(--container-max);
     margin: 0 auto;
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-2) var(--space-4);
     display: flex;
     align-items: center;
     gap: var(--space-2);
@@ -85,26 +88,24 @@
   .brand {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
   }
-  .brand-mark {
-    width: 36px; height: 36px;
-    border-radius: 10px;
-    background: var(--color-emerald);
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; font-weight: 800; letter-spacing: 0.5px; font-size: 15px;
+  .brand-logo {
+    width: 44px; height: 44px;
+    color: var(--color-litgrid-navy);
+    flex: 0 0 auto;
   }
-  .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
-  .brand-text strong { color: var(--color-graphite); font-weight: 800; font-size: 16px; }
-  .brand-text span { color: var(--color-graphite-50); font-size: 12.5px; font-weight: 600; letter-spacing: 0.3px; }
-
-  .topbar-meta {
-    margin-left: auto;
-    color: var(--color-graphite-50);
-    font-size: 13px;
-    font-weight: 600;
+  .brand-logo svg { width: 100%; height: 100%; display: block; }
+  .brand-divider {
+    width: 1px; height: 28px;
+    background: var(--color-graphite-15);
   }
-  .topbar-meta b { color: var(--color-graphite); font-weight: 700; }
+  .brand-name {
+    color: var(--color-litgrid-navy);
+    font-weight: 800;
+    font-size: 17px;
+    letter-spacing: 0.4px;
+  }
 
   /* ─── Hero ─────────────────────────────────────────────── */
   .hero {
@@ -303,8 +304,8 @@
     overflow: hidden;
     transition: width 240ms ease;
   }
-  .timeline .bar .prep { background: var(--color-emerald); }
-  .timeline .bar .exec { background: var(--color-emerald-50); }
+  .timeline .bar .prep { background: var(--color-litgrid-navy); }
+  .timeline .bar .exec { background: var(--color-emerald); }
 
   .timeline .ticks {
     display: flex;
@@ -464,13 +465,12 @@
 <div class="topbar">
   <div class="topbar-inner">
     <div class="brand">
-      <div class="brand-mark">L</div>
-      <div class="brand-text">
-        <strong>LITGRID AB</strong>
-        <span>EPSO-G GRUPĖ · PIRKIMŲ DEPARTAMENTAS</span>
+      <div class="brand-logo" aria-label="LITGRID logotipas">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 470 460" fill="currentColor" aria-hidden="true"><path d="M316.4,227.52c-1.49-17.44-8.2-33.15-18.89-45.84L404.36,74.51l-9.67-9.73L287.81,171.95 c-12.68-10.7-28.33-17.7-45.73-18.93V1.5h-13.92v151.51c-17.15,1.23-33.05,8.24-45.48,18.93L75.56,64.78l-9.69,9.73l106.87,107.17 c-10.68,12.69-17.39,28.4-18.89,45.84H2.74v13.95h151.11c1.49,17.21,8.2,33.15,18.89,45.61L65.87,394.48l9.69,9.72l107.12-107.15 c12.43,10.7,28.33,17.44,45.48,18.94V467.5h13.92V315.99c17.39-1.5,33.05-8.24,45.73-18.94L394.69,404.2l9.67-9.72L297.51,287.08 c10.68-12.46,17.39-28.4,18.89-45.61h151.36v-13.95H316.4z M182.68,191.65l35.79,35.88h-50.7 C169.01,214.07,174.48,201.61,182.68,191.65z M167.77,241.47h50.7l-35.79,35.88C174.48,267.38,169.01,254.93,167.77,241.47z M228.16,302.03c-13.42-1.26-25.85-6.74-35.79-14.95l35.79-35.88V302.03z M228.16,217.56l-35.79-35.88 c9.94-7.97,22.37-13.46,35.79-14.95V217.56z M242.08,166.73c13.42,1.49,25.85,6.98,35.79,14.95l-35.79,35.88V166.73z M242.08,302.03v-50.83l35.79,35.88C267.93,295.29,255.5,300.77,242.08,302.03z M287.81,277.35l-35.79-35.88h50.7 C301.23,254.93,295.77,267.38,287.81,277.35z M252.02,227.52l35.79-35.88c7.95,9.96,13.42,22.42,14.91,35.88H252.02z"/></svg>
       </div>
+      <div class="brand-divider"></div>
+      <div class="brand-name">LITGRID AB</div>
     </div>
-    <div class="topbar-meta">Įrankis: <b>Pirkimų trukmių skaičiuoklė</b> · v1.1</div>
   </div>
 </div>
 
@@ -540,8 +540,8 @@
       <div class="bar"><div class="seg prep" id="m1-seg-prep"></div><div class="seg exec" id="m1-seg-exec"></div></div>
       <div class="ticks"><span id="m1-t-start"></span><span id="m1-t-mid"></span><span id="m1-t-end"></span></div>
       <div class="legend">
-        <span><span class="sw" style="background:var(--color-emerald)"></span>Pasirengimas</span>
-        <span><span class="sw" style="background:var(--color-emerald-50)"></span>Vykdymas</span>
+        <span><span class="sw" style="background:var(--color-litgrid-navy)"></span>Pasirengimas</span>
+        <span><span class="sw" style="background:var(--color-emerald)"></span>Vykdymas</span>
       </div>
     </div>
   </div>
@@ -584,8 +584,8 @@
       <div class="bar"><div class="seg prep" id="m2-seg-prep"></div><div class="seg exec" id="m2-seg-exec"></div></div>
       <div class="ticks"><span id="m2-t-start"></span><span id="m2-t-mid"></span><span id="m2-t-end"></span></div>
       <div class="legend">
-        <span><span class="sw" style="background:var(--color-emerald)"></span>Pasirengimas</span>
-        <span><span class="sw" style="background:var(--color-emerald-50)"></span>Vykdymas</span>
+        <span><span class="sw" style="background:var(--color-litgrid-navy)"></span>Pasirengimas</span>
+        <span><span class="sw" style="background:var(--color-emerald)"></span>Vykdymas</span>
       </div>
     </div>
   </div>
@@ -624,7 +624,7 @@
       <div class="bar"><div class="seg exec" id="m3-seg-exec" style="width:100%"></div></div>
       <div class="ticks"><span id="m3-t-start"></span><span id="m3-t-end"></span></div>
       <div class="legend">
-        <span><span class="sw" style="background:var(--color-emerald-50)"></span>Vykdymas</span>
+        <span><span class="sw" style="background:var(--color-emerald)"></span>Vykdymas</span>
       </div>
     </div>
   </div>
